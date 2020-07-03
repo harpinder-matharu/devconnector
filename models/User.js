@@ -39,12 +39,11 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
 
 // sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
-  const payLoad = { id: this.id, name: this.name };
-  const secret = keys.JWT_SECRET;
-  const options = {
-    expiresIn: 36000,
-  };
-  return 'Bearer ' + jwt.sign(payLoad, secret, options);
+  const payLoad = { id: this._id, name: this.name };
+
+  return jwt.sign(payLoad, keys.JWT_SECRET, {
+    expiresIn: 3600,
+  });
 };
 
 module.exports = User = mongoose.model('users', UserSchema);

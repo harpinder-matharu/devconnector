@@ -4,10 +4,19 @@ const router = express.Router();
 const User = require('../../models/User');
 const passport = require('passport');
 
+// load input validation
+const validateRegisterInput = require('../../validation/register');
+const validateLoginInput = require('../../validation/login');
 // @desc      Register User
 // @route     POST /api/user/register
 // @access    Public
 router.post('/register', async (req, res) => {
+  const { errors, isValid } = validateRegisterInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   const { name, email, password } = req.body;
   let user = await User.findOne({ email });
   if (user) {
@@ -35,6 +44,12 @@ router.post('/register', async (req, res) => {
 // @route     POST /api/user/login
 // @access    Public
 router.post('/login', async (req, res) => {
+  const { errors, isValid } = validateLoginInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   const { email, password } = req.body;
   let user = await User.findOne({ email });
   if (!user) {
@@ -46,8 +61,8 @@ router.post('/login', async (req, res) => {
   if (!isMatch) {
     return res.status(400).json({ err: 'Invalid credentials' });
   }
-  const token = user.getSignedJwtToken();
-  res.json({ user, token: token });
+  const token = 'Bearer ' + user.getSignedJwtToken();
+  res.json({ user, token });
   // if(user)
 });
 
@@ -58,7 +73,7 @@ router.get(
   '/current',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    res.json({ msg: 'success' });
+    res.json(req.user);
   }
 );
 
